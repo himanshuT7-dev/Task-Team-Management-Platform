@@ -30,6 +30,15 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Task & Team Management Platform API is running',
+    status: 'healthy',
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'healthy',
