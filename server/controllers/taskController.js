@@ -28,7 +28,9 @@ export const getTasks = async (req, res, next) => {
       query.priority = priority;
     }
 
-    if (assignedUser && assignedUser !== 'all') {
+    if (req.user.role !== 'admin') {
+      query.assignedUser = req.user._id;
+    } else if (assignedUser && assignedUser !== 'all') {
       query.assignedUser = assignedUser;
     }
 
@@ -66,6 +68,8 @@ export const getTasks = async (req, res, next) => {
 
 export const getTaskStats = async (req, res, next) => {
   try {
+    const baseQuery = req.user.role === 'admin' ? {} : { assignedUser: req.user._id };
+
     const [
       totalTasks,
       pendingTasks,
@@ -76,14 +80,14 @@ export const getTaskStats = async (req, res, next) => {
       highPriority,
       urgentPriority
     ] = await Promise.all([
-      Task.countDocuments(),
-      Task.countDocuments({ status: 'pending' }),
-      Task.countDocuments({ status: 'in-progress' }),
-      Task.countDocuments({ status: 'completed' }),
-      Task.countDocuments({ priority: 'low' }),
-      Task.countDocuments({ priority: 'medium' }),
-      Task.countDocuments({ priority: 'high' }),
-      Task.countDocuments({ priority: 'urgent' })
+      Task.countDocuments(baseQuery),
+      Task.countDocuments({ ...baseQuery, status: 'pending' }),
+      Task.countDocuments({ ...baseQuery, status: 'in-progress' }),
+      Task.countDocuments({ ...baseQuery, status: 'completed' }),
+      Task.countDocuments({ ...baseQuery, priority: 'low' }),
+      Task.countDocuments({ ...baseQuery, priority: 'medium' }),
+      Task.countDocuments({ ...baseQuery, priority: 'high' }),
+      Task.countDocuments({ ...baseQuery, priority: 'urgent' })
     ]);
 
     res.status(200).json({
@@ -116,6 +120,13 @@ export const getTaskById = async (req, res, next) => {
       return res.status(404).json({
         success: false,
         message: 'Task not found'
+      });
+    }
+
+    if (req.user.role !== 'admin' && (!task.assignedUser || task.assignedUser._id.toString() !== req.user._id.toString())) {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden: You can only view tasks assigned to you'
       });
     }
 
@@ -184,22 +195,42 @@ export const updateTask = async (req, res, next) => {
       });
     }
 
-    if (assignedUser) {
-      const assignedUserExists = await User.findById(assignedUser);
-      if (!assignedUserExists) {
-        return res.status(400).json({
+    const isAdmin = req.user.role === 'admin';
+    const isAssignee = task.assignedUser && task.assignedUser.toString() === req.user._id.toString();
+    const isStatusOnlyUpdate = status !== undefined &&
+      title === undefined &&
+      description === undefined &&
+      priority === undefined &&
+      dueDate === undefined &&
+      assignedUser === undefined;
+
+    if (!isAdmin) {
+      if (isStatusOnlyUpdate && isAssignee) {
+        task.status = status;
+      } else {
+        return res.status(403).json({
           success: false,
-          message: 'Selected assigned user does not exist'
+          message: 'Forbidden: Only administrators can edit task details'
         });
       }
-      task.assignedUser = assignedUser;
-    }
+    } else {
+      if (assignedUser) {
+        const assignedUserExists = await User.findById(assignedUser);
+        if (!assignedUserExists) {
+          return res.status(400).json({
+            success: false,
+            message: 'Selected assigned user does not exist'
+          });
+        }
+        task.assignedUser = assignedUser;
+      }
 
-    if (title !== undefined) task.title = title;
-    if (description !== undefined) task.description = description;
-    if (priority !== undefined) task.priority = priority;
-    if (dueDate !== undefined) task.dueDate = dueDate;
-    if (status !== undefined) task.status = status;
+      if (title !== undefined) task.title = title;
+      if (description !== undefined) task.description = description;
+      if (priority !== undefined) task.priority = priority;
+      if (dueDate !== undefined) task.dueDate = dueDate;
+      if (status !== undefined) task.status = status;
+    }
 
     const updatedTask = await task.save();
 
@@ -228,10 +259,10 @@ export const deleteTask = async (req, res, next) => {
       });
     }
 
-    if (req.user.role !== 'admin' && task.createdBy.toString() !== req.user._id.toString()) {
+    if (req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
-        message: 'Forbidden: Only administrators or the task creator can delete this task'
+        message: 'Forbidden: Only administrators can delete tasks'
       });
     }
 

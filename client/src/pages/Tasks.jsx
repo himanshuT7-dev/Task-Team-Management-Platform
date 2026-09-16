@@ -4,6 +4,7 @@ import { List, LayoutGrid, Plus } from 'lucide-react';
 import { fetchTasks, fetchTaskStats, deleteTask, updateTask, setFilters, setPage } from '../store/taskSlice';
 import { setViewMode, showToast } from '../store/uiSlice';
 import { useDebounce } from '../hooks/useDebounce';
+import { useAuth } from '../hooks/useAuth';
 import TaskFilters from '../components/TaskFilters';
 import TaskCard from '../components/TaskCard';
 import TaskModal from '../components/TaskModal';
@@ -13,6 +14,7 @@ import Pagination from '../components/Pagination';
 
 const Tasks = () => {
   const dispatch = useDispatch();
+  const { isAdmin } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
@@ -103,13 +105,15 @@ const Tasks = () => {
               <LayoutGrid className="h-4 w-4" />
             </button>
           </div>
-          <button
-            onClick={handleOpenCreateModal}
-            className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 dark:bg-blue-500 dark:hover:bg-blue-400"
-          >
-            <Plus className="h-4 w-4" />
-            New Task
-          </button>
+          {isAdmin && (
+            <button
+              onClick={handleOpenCreateModal}
+              className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 dark:bg-blue-500 dark:hover:bg-blue-400"
+            >
+              <Plus className="h-4 w-4" />
+              New Task
+            </button>
+          )}
         </div>
       </div>
 
@@ -129,17 +133,21 @@ const Tasks = () => {
             <LayoutGrid className="mx-auto h-12 w-12 text-zinc-400" />
             <h3 className="mt-2 text-sm font-semibold text-zinc-900 dark:text-white">No tasks found</h3>
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-              Get started by creating a new task or adjusting your filters.
+              {isAdmin
+                ? 'Get started by creating a new task or adjusting your filters.'
+                : 'No tasks are currently assigned to you.'}
             </p>
-            <div className="mt-6">
-              <button
-                onClick={handleOpenCreateModal}
-                className="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500"
-              >
-                <Plus className="mr-1.5 h-4 w-4" />
-                New Task
-              </button>
-            </div>
+            {isAdmin && (
+              <div className="mt-6">
+                <button
+                  onClick={handleOpenCreateModal}
+                  className="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500"
+                >
+                  <Plus className="mr-1.5 h-4 w-4" />
+                  New Task
+                </button>
+              </div>
+            )}
           </div>
         ) : viewMode === 'list' ? (
           <div className="flex h-full flex-col space-y-4">
@@ -148,8 +156,8 @@ const Tasks = () => {
                 <TaskCard
                   key={task._id}
                   task={task}
-                  onEdit={handleEditTask}
-                  onDelete={handleDeleteTask}
+                  onEdit={isAdmin ? handleEditTask : null}
+                  onDelete={isAdmin ? handleDeleteTask : null}
                   onView={handleViewTask}
                 />
               ))}
@@ -169,16 +177,18 @@ const Tasks = () => {
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
         task={viewingTask}
-        onEdit={handleEditTask}
-        onDelete={handleDeleteTask}
+        onEdit={isAdmin ? handleEditTask : null}
+        onDelete={isAdmin ? handleDeleteTask : null}
         onStatusChange={handleStatusChange}
       />
 
-      <TaskModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        task={editingTask}
-      />
+      {isAdmin && (
+        <TaskModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          task={editingTask}
+        />
+      )}
     </div>
   );
 };

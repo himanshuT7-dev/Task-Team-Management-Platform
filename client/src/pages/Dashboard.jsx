@@ -384,8 +384,8 @@ const Dashboard = () => {
                 key={task._id}
                 task={task}
                 onView={handleOpenDetail}
-                onEdit={handleEditFromDetail}
-                onDelete={(t) => handleQuickDelete(t._id)}
+                onEdit={isAdmin ? handleEditFromDetail : null}
+                onDelete={isAdmin ? ((t) => handleQuickDelete(t._id)) : null}
               />
             ))
           ) : (
@@ -400,16 +400,18 @@ const Dashboard = () => {
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
         task={viewingTask}
-        onEdit={handleEditFromDetail}
-        onDelete={(t) => handleQuickDelete(t._id)}
+        onEdit={isAdmin ? handleEditFromDetail : null}
+        onDelete={isAdmin ? ((t) => handleQuickDelete(t._id)) : null}
         onStatusChange={handleStatusChangeFromDetail}
       />
 
-      <TaskModal
-        isOpen={isTaskModalOpen}
-        onClose={() => setIsTaskModalOpen(false)}
-        task={editingTask}
-      />
+      {isAdmin && (
+        <TaskModal
+          isOpen={isTaskModalOpen}
+          onClose={() => setIsTaskModalOpen(false)}
+          task={editingTask}
+        />
+      )}
     </div>
   );
 };

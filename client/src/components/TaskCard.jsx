@@ -15,7 +15,7 @@ const TaskCard = memo(({ task, onEdit, onDelete, onView }) => {
 
   const taskCreatorId = task.createdBy?._id || task.createdBy;
   const currentUserId = user?.id || user?._id;
-  const canDelete = isAdmin || (currentUserId && taskCreatorId === currentUserId);
+  const canDelete = isAdmin;
 
   const handleCardClick = () => {
     if (onView) {
@@ -41,7 +41,7 @@ const TaskCard = memo(({ task, onEdit, onDelete, onView }) => {
             <Eye className="w-4 h-4" />
           </button>
         )}
-        {onEdit && (
+        {onEdit && isAdmin && (
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -60,7 +60,7 @@ const TaskCard = memo(({ task, onEdit, onDelete, onView }) => {
               onDelete(task);
             }}
             className="p-1.5 text-zinc-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
-            title={isAdmin ? "Delete Task (Admin)" : "Delete Task"}
+            title="Delete Task (Admin)"
           >
             <Trash2 className="w-4 h-4" />
           </button>

@@ -34,10 +34,7 @@ const TaskDetailModal = ({
   const daysRemaining = getDaysRemaining(task.dueDate);
   const isOverdue = daysRemaining < 0 && task.status !== 'completed';
 
-  const taskCreatorId = task.createdBy?._id || task.createdBy;
-  const currentUserId = user?.id || user?._id;
-  const canDelete =
-    isAdmin || (currentUserId && taskCreatorId === currentUserId);
+  const canDelete = isAdmin;
 
   return (
     <div
@@ -214,16 +211,18 @@ const TaskDetailModal = ({
             >
               Close
             </button>
-            <button
-              onClick={() => {
-                onClose();
-                onEdit(task);
-              }}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-sm"
-            >
-              <Pencil className="w-3.5 h-3.5" />
-              <span>Edit Task</span>
-            </button>
+            {isAdmin && onEdit && (
+              <button
+                onClick={() => {
+                  onClose();
+                  onEdit(task);
+                }}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-sm"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                <span>Edit Task</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
