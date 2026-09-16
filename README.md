@@ -4,11 +4,11 @@ A full-stack task and team management application built with the MERN stack. Fea
 
 ## Live Demo
 
-| Layer    | URL                                      |
-| -------- | ---------------------------------------- |
-| Frontend | _https://your-app.vercel.app_            |
-| Backend  | _https://your-api.onrender.com_          |
-| Database | MongoDB Atlas                            |
+| Layer | URL |
+| --- | --- |
+| **Frontend** | [https://task-team-management-platform.vercel.app/login](https://task-team-management-platform.vercel.app/login) |
+| **Backend** | [https://task-team-management-platform.onrender.com](https://task-team-management-platform.onrender.com/) |
+| **Database** | MongoDB Atlas (Cluster0) |
 
 ## Test Credentials
 
@@ -284,7 +284,7 @@ _Add screenshots of the running application here._
 3. Set root directory to `client`
 4. Set build command to `npm run build`
 5. Set output directory to `dist`
-6. Add environment variable: `VITE_API_URL=https://your-api.onrender.com`
+6. Add environment variable: `VITE_API_URL=https://task-team-management-platform.onrender.com`
 
 ### Backend (Render)
 
